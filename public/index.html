@@ -5,21 +5,24 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Personalizador de Placas</title>
   <style>
-    :root{--gap:10px}
     body{font-family: Inter, Arial, sans-serif; background:#f6f7fb; color:#222; margin:20px; display:flex; gap:20px; align-items:flex-start; justify-content:center}
     .panel{background:#fff; padding:14px; border-radius:10px; box-shadow:0 6px 18px rgba(20,20,40,.06)}
     .controls{width:412px; display:flex; flex-direction:column; gap:10px}
     .row{display:flex; gap:8px; align-items:center}
     label{min-width:120px; font-size:14px; color:#444}
-    input[type="file"], select, input[type="text"], input[type="range"], input[type="color"]{padding:8px; border-radius:8px; border:1px solid #e6e9ef; width:100%}
-    button{padding:8px 12px; border-radius:8px; border:0; background:#5b21b6; color:#fff; cursor:pointer}
+    input, select, button{padding:8px; border-radius:8px; border:1px solid #e6e9ef; width:100%}
+    button{background:#5b21b6; color:#fff; cursor:pointer; border:none}
     button.secondary{background:#6b7280}
     canvas{border-radius:10px; background:#fff; display:block}
-    .hint{font-size:12px; color:#666}
-    .inline{display:inline-flex; gap:6px; align-items:center}
-    .group{display:flex; gap:8px; flex-wrap:wrap}
     .pill{padding:4px 8px; border-radius:999px; background:#eef; font-size:12px}
+    .hint{font-size:12px; color:#666}
+    #statusMsg{margin-top:10px; font-weight:bold}
   </style>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat&family=Open+Sans&family=Roboto&display=swap" rel="stylesheet">
+    
 </head>
 <body>
 
@@ -27,579 +30,69 @@
   <div class="panel">
     <div class="row" style="justify-content:space-between; margin-bottom:8px">
       <div class="pill">Lado activo: <b id="sideBadge">Frente</b></div>
-      <div class="group">
-        <button id="toggleSideBtn" class="secondary">Cambiar a Respaldo</button>
-        <button id="sendBtn">Enviar por correo</button>
-        <button id="btnWhatsApp">📩 Enviar por WhatsApp</button>
-        <button id="resetSideBtn" class="secondary">Reset lado</button>
+      <div class="row" style="gap:6px">
+        <button id="toggleSideBtn" class="secondary">Cambiar lado</button>
+        <button id="sendEmailBtn">📧 Correo</button>
+        <button id="sendWhatsappBtn" style="background:#25D366">📲 WhatsApp</button>
+        <button id="resetSideBtn" class="secondary">Reset</button>
+        <button id="exportBothBtn" style="background:#0ea5a4">Exportar</button>
       </div>
     </div>
-    <canvas id="canvas" width="600" height="600"></canvas>
-    <p class="hint">Selecciona un elemento con clic: <b>Foto</b> o <b>Texto</b>. Arrastra para mover. Rueda para escalar. Usa los sliders o botones para rotar/escala.</p>
+
+    <h3 style="text-align:center">Frente</h3>
+    <canvas id="canvasFront" width="400" height="400"></canvas>
+    <h3 style="text-align:center">Respaldo</h3>
+    <canvas id="canvasBack" width="400" height="400"></canvas>
+
+    <p class="hint">Arrastra con el mouse para mover elementos. Usa sliders para rotar/escala.</p>
+    <div id="statusMsg"></div>
   </div>
 
   <!-- Controles -->
   <div class="panel controls">
     <div class="row">
-      <label>Plantilla (overlay):</label>
+      <label>Plantilla:</label>
       <select id="templateSelect">
         <option value="templates/C-01.png" selected>Frente: C-01</option>
         <option value="templates/C-01-back.png">Respaldo: C-01-back</option>
-        <option value="templates/HS-01.png" selected>Frente: HS-01</option>
+        <option value="templates/HS-01.png">Frente: HS-01</option>
         <option value="templates/HS-01-back.png">Respaldo: HS-01-back</option>
       </select>
     </div>
 
-    <div class="row">
-      <label>Fondo del lado (imagen):</label>
-      <input type="file" id="bgInput" accept="image/*">
-    </div>
-
-    <div class="row">
-      <label>Fondo del lado (color):</label>
-      <input type="color" id="bgColorInput" value="#ffffff">
-    </div>
-
-    <div class="row">
-      <label>Foto del lado:</label>
-      <input type="file" id="photoInput" accept="image/*">
-    </div>
+    <div class="row"><label>Fondo:</label><input type="file" id="bgInput" accept="image/*"></div>
+    <div class="row"><label>Color:</label><input type="color" id="bgColorInput" value="#ffffff"></div>
+    <div class="row"><label>Foto:</label><input type="file" id="photoInput" accept="image/*"></div>
 
     <hr>
 
     <div class="row"><b>Elemento activo:</b> <span id="activeLabel" class="pill">Ninguno</span></div>
-
+    <div class="row"><label>Rotar:</label><input type="range" id="rotateRange" min="-180" max="180" step="1" value="0"></div>
+    <div class="row"><label>Escala:</label><input type="range" id="scaleRange" min="0.1" max="3" step="0.01" value="1"></div>
     <div class="row">
-      <label>Rotar (°):</label>
-      <div class="inline">
-        <button id="rotateLeftBtn" class="secondary">◀</button>
-        <input type="range" id="rotateRange" min="-180" max="180" step="1" value="0" style="width:180px">
-        <button id="rotateRightBtn" class="secondary">▶</button>
-      </div>
+        <label>Fuente:</label>
+        <select id="fontSelect">
+            <option value="Inter, Arial" selected>Defecto</option>
+            <option value="Roboto">Roboto</option>
+            <option value="Open Sans">Open Sans</option>
+            <option value="Montserrat">Montserrat</option>
+            <option value="Arial">Arial</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Times New Roman">Times New Roman</option>
+        </select>
     </div>
-
-    <div class="row">
-      <label>Escala:</label>
-      <input type="range" id="scaleRange" min="0.1" max="3" step="0.01" value="1">
-    </div>
+    <div class="row"><label>Texto:</label><input type="text" id="textInput"><button id="addTextBtn" class="secondary">Agregar</button></div>
+    <div class="row"><label>Color texto:</label><input type="color" id="textColor" value="#000000"></div>
+    <div class="row"><label>Tamaño:</label><input type="range" id="textSize" min="10" max="80" step="1" value="28"></div>
+    <div class="row"><button id="deleteActiveBtn" class="secondary">Eliminar</button></div>
 
     <hr>
 
-    <div class="row">
-      <label>Nuevo texto:</label>
-      <input type="text" id="textInput" placeholder="Nombre / Teléfono">
-      <button id="addTextBtn" class="secondary">Agregar</button>
-    </div>
-
-    <div class="row">
-      <label>Color texto:</label>
-      <input type="color" id="textColor" value="#000000">
-    </div>
-
-    <div class="row">
-      <label>Tamaño base (px):</label>
-      <input type="range" id="textSize" min="10" max="80" step="1" value="28">
-    </div>
-
-    <div class="row">
-      <button id="deleteActiveBtn" class="secondary">Eliminar elemento activo</button>
-    </div>
-
-    <hr>
-    <p class="hint">Orden de capas: Color interior → Foto → Textos → <b>Plantilla</b>. La plantilla debe tener transparencia en el centro.</p>
+    <div class="row"><label>Correo:</label><input type="email" id="emailInput" placeholder="sublidesingwvr@gmail.com"></div>
+    <div class="row"><label>WhatsApp:</label><input type="tel" id="whatsappInput" placeholder="573214874523"></div>
   </div>
 
-
-
-<script>
-/* =========================================
-   Estado por lado (front/back) independiente
-   ========================================= */
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const W = canvas.width, H = canvas.height;
-
-const defaultTextStyle = { color:'#000000', size:28 };
-const makeSideState = (templatePath) => ({
-  templatePath,
-  templateImg: null,
-  bgImg: null,
-  bgColor: "#ffffff", // color que se aplicará dentro de la plantilla
-  photo: { img:null, x:W/2, y:H/2, scale:1, angle:0, w:0, h:0 },
-  texts: [] // {text,x,y,scale,angle,color,size}
-});
-
-const state = {
-  front: makeSideState('templates/C-01.png'),
-  back:  makeSideState('templates/C-01-back.png'),
-  front: makeSideState('templates/HS-01.png'),
-  back:  makeSideState('templates/HS-01-back.png'),
-};
-let currentSide = 'front';     // 'front' | 'back'
-
-/* Elemento activo para edición */
-let active = { type: null, idx: -1 }; // type: 'photo' | 'text' | null
-
-/* =====================
-   Utilidades de dibujo
-   ===================== */
-function clearCanvas() {
-  ctx.clearRect(0,0,W,H);
-  // fondo exterior fijo (fuera de la plantilla) — lo dejamos blanco
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0,0,W,H);
-}
-
-/*
-  drawSide ahora:
-  - si hay bgImg: lo dibuja (como antes)
-  - si NO hay bgImg pero existe templateImg: pinta el color SOLO en el interior (área transparente)
-    usando un canvas offscreen y compositing (destination-out)
-*/
-function drawSide(s) {
-  clearCanvas();
-
-  // 1) Si hay imagen de fondo, la usamos (se ajusta igual que antes)
-  if (s.bgImg) {
-    const arImg = s.bgImg.width / s.bgImg.height;
-    const arCanvas = W / H;
-    let drawW = W, drawH = H, dx = 0, dy = 0;
-    if (arImg > arCanvas) { // recorta lados
-      drawH = H;
-      drawW = s.bgImg.width * (drawH / s.bgImg.height);
-      dx = (W - drawW) / 2;
-    } else { // recorta arriba/abajo
-      drawW = W;
-      drawH = s.bgImg.height * (drawW / s.bgImg.width);
-      dy = (H - drawH) / 2;
-    }
-    ctx.drawImage(s.bgImg, dx, dy, drawW, drawH);
-  } else if (s.templateImg && s.templateImg.complete) {
-    // 2) Si NO hay imagen de fondo, rellenamos el INTERIOR de la plantilla con el color seleccionado.
-    //    Procedimiento: crear offscreen, pintar color, luego "destination-out" con la plantilla
-    //    para eliminar el color donde la plantilla es opaca, dejando color solo en áreas transparentes.
-    const mask = document.createElement('canvas');
-    mask.width = W; mask.height = H;
-    const mctx = mask.getContext('2d');
-
-    // pinta todo con el color elegido
-    mctx.fillStyle = s.bgColor || '#ffffff';
-    mctx.fillRect(0,0,W,H);
-
-    // borra (destination-out) las zonas donde la plantilla NO es transparente (es decir,
-    // la plantilla "punchará" el color dejando sólo el interior transparente lleno)
-    mctx.globalCompositeOperation = 'destination-out';
-    mctx.drawImage(s.templateImg, 0, 0, W, H);
-
-    // restaurar modo y dibujar la máscara resultante sobre la canvas principal
-    mctx.globalCompositeOperation = 'source-over';
-    ctx.drawImage(mask, 0, 0);
-  }
-
-  // 3) Foto (si la hay)
-  if (s.photo.img) {
-    const p = s.photo;
-    ctx.save();
-    ctx.translate(p.x, p.y);
-    ctx.rotate(p.angle * Math.PI/180);
-    ctx.scale(p.scale, p.scale);
-    ctx.drawImage(p.img, -p.w/2, -p.h/2, p.w, p.h);
-    ctx.restore();
-  }
-
-  // 4) Textos
-  for (let i=0;i<s.texts.length;i++) {
-    const t = s.texts[i];
-    ctx.save();
-    ctx.translate(t.x, t.y);
-    ctx.rotate(t.angle * Math.PI/180);
-    ctx.scale(t.scale, t.scale);
-    ctx.font = `bold ${t.size}px Arial`;
-    ctx.fillStyle = t.color;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(t.text, 0, 0);
-    ctx.restore();
-  }
-
-  // 5) Plantilla (overlay) — se dibuja al final para mantener bordes y detalles por encima
-  if (s.templateImg && s.templateImg.complete) {
-    ctx.drawImage(s.templateImg, 0, 0, W, H);
-  }
-}
-
-function render() {
-  drawSide(state[currentSide]);
-}
-
-/* =========================
-   Carga de imágenes
-   ========================= */
-function loadTemplateFor(side, path) {
-  const img = new Image();
-  img.onload = () => { state[side].templateImg = img; render(); };
-  img.src = path;
-}
-
-function initTemplates() {
-  loadTemplateFor('front', state.front.templatePath);
-  loadTemplateFor('back',  state.back.templatePath);
-}
-
-/* =========================
-   Selección (hit testing)
-   ========================= */
-function pointInPhoto(s, mx, my) {
-  const p = s.photo;
-  if (!p.img) return false;
-  const dx = mx - p.x, dy = my - p.y;
-  const a = -p.angle * Math.PI/180;
-  const cos = Math.cos(a), sin = Math.sin(a);
-  const lx = (cos*dx - sin*dy) / p.scale;
-  const ly = (sin*dx + cos*dy) / p.scale;
-  return (lx >= -p.w/2 && lx <= p.w/2 && ly >= -p.h/2 && ly <= p.h/2);
-}
-
-function pointInText(t, mx, my) {
-  const dx = mx - t.x, dy = my - t.y;
-  const a = -t.angle * Math.PI/180;
-  const cos = Math.cos(a), sin = Math.sin(a);
-  const lx = (cos*dx - sin*dy) / t.scale;
-  const ly = (sin*dx + cos*dy) / t.scale;
-  // medir ancho aproximado
-  ctx.save();
-  ctx.font = `bold ${t.size}px Arial`;
-  const width = ctx.measureText(t.text).width;
-  ctx.restore();
-  const halfW = width/2, halfH = t.size * 0.8; // alto aprox de texto
-  return (lx >= -halfW && lx <= halfW && ly >= -halfH && ly <= halfH);
-}
-
-/* =========================
-   Interacción del mouse
-   ========================= */
-let dragging = false;
-let last = {x:0, y:0};
-
-canvas.addEventListener('mousedown', (e)=>{
-  const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const my = e.clientY - rect.top;
-  const s = state[currentSide];
-
-  // Prioridad de selección: foto > textos
-  if (pointInPhoto(s, mx, my)) {
-    active = { type:'photo', idx:-1 };
-  } else {
-    // buscar el texto más arriba (último dibujado)
-    let found = -1;
-    for (let i=s.texts.length-1; i>=0; i--) {
-      if (pointInText(s.texts[i], mx, my)) { found = i; break; }
-    }
-    if (found !== -1) {
-      active = { type:'text', idx: found };
-    } else {
-      active = { type:null, idx:-1 };
-    }
-  }
-  updateActiveUI();
-  if (active.type) {
-    dragging = true;
-    last.x = mx; last.y = my;
-  }
-});
-
-canvas.addEventListener('mousemove', (e)=>{
-  if (!dragging || !active.type) return;
-  const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const my = e.clientY - rect.top;
-  const dx = mx - last.x, dy = my - last.y;
-
-  const s = state[currentSide];
-  if (active.type === 'photo') {
-    s.photo.x += dx; s.photo.y += dy;
-  } else if (active.type === 'text') {
-    const t = s.texts[active.idx];
-    t.x += dx; t.y += dy;
-  }
-  last.x = mx; last.y = my;
-  render();
-});
-
-['mouseup','mouseleave'].forEach(ev=>{
-  canvas.addEventListener(ev, ()=>{ dragging = false; });
-});
-
-// Rueda del mouse para ESCALAR el activo
-canvas.addEventListener('wheel', (e)=>{
-  if (!active.type) return;
-  e.preventDefault();
-  const factor = (e.deltaY < 0) ? 1.05 : 0.95;
-  const s = state[currentSide];
-
-  if (active.type === 'photo') {
-    s.photo.scale = Math.max(0.1, Math.min(3, s.photo.scale * factor));
-    document.getElementById('scaleRange').value = s.photo.scale;
-  } else if (active.type === 'text') {
-    const t = s.texts[active.idx];
-    t.scale = Math.max(0.1, Math.min(3, t.scale * factor));
-    document.getElementById('scaleRange').value = t.scale;
-  }
-  render();
-});
-
-/* =========================
-   UI binding
-   ========================= */
-const sideBadge = document.getElementById('sideBadge');
-const toggleSideBtn = document.getElementById('toggleSideBtn');
-const templateSelect = document.getElementById('templateSelect');
-
-function syncTemplateSelect() {
-  // Mostrar la opción adecuada para el lado actual
-  templateSelect.value = state[currentSide].templatePath;
-}
-function updateActiveUI() {
-  const label = document.getElementById('activeLabel');
-  if (!active.type) { label.textContent = 'Ninguno'; return; }
-  label.textContent = active.type === 'photo' ? 'Foto' : 'Texto';
-  // sincronizar sliders con el activo
-  const s = state[currentSide];
-  if (active.type === 'photo') {
-    document.getElementById('rotateRange').value = s.photo.angle;
-    document.getElementById('scaleRange').value  = s.photo.scale;
-  } else {
-    const t = s.texts[active.idx];
-    document.getElementById('rotateRange').value = t.angle;
-    document.getElementById('scaleRange').value  = t.scale;
-    document.getElementById('textColor').value   = t.color;
-    document.getElementById('textSize').value    = t.size;
-  }
-}
-
-toggleSideBtn.addEventListener('click', ()=>{
-  currentSide = (currentSide === 'front') ? 'back' : 'front';
-  sideBadge.textContent = (currentSide === 'front') ? 'Frente' : 'Respaldo';
-  toggleSideBtn.textContent = (currentSide === 'front') ? 'Cambiar a Respaldo' : 'Cambiar a Frente';
-  syncTemplateSelect();
-  active = { type:null, idx:-1 };
-  updateActiveUI();
-  render();
-});
-
-// Plantilla (overlay) por lado
-templateSelect.addEventListener('change', (e)=>{
-  const path = e.target.value;
-  state[currentSide].templatePath = path;
-  loadTemplateFor(currentSide, path);
-});
-
-// Fondo por lado (imagen)
-document.getElementById('bgInput').addEventListener('change', (ev)=>{
-  const f = ev.target.files[0]; if (!f) return;
-  const img = new Image();
-  img.onload = ()=>{ state[currentSide].bgImg = img; render(); };
-  img.src = URL.createObjectURL(f);
-});
-
-// Fondo por lado (color) — sólo se aplica al interior de la plantilla
-document.getElementById('bgColorInput').addEventListener('input', (e)=>{
-  state[currentSide].bgColor = e.target.value;
-  render();
-});
-
-// Foto por lado
-document.getElementById('photoInput').addEventListener('change', (ev)=>{
-  const f = ev.target.files[0]; if (!f) return;
-  const img = new Image();
-  img.onload = ()=>{
-    const s = state[currentSide];
-    s.photo.img = img;
-    // tamaño base hasta 60% del canvas
-    const maxW = W*0.6, maxH = H*0.6;
-    let w = img.width, h = img.height;
-    const scale = Math.min(maxW/w, maxH/h, 1);
-    s.photo.w = w*scale; s.photo.h = h*scale;
-    s.photo.x = W/2; s.photo.y = H/2;
-    s.photo.scale = 1; s.photo.angle = 0;
-    active = { type:'photo', idx:-1 };
-    updateActiveUI();
-    render();
-  };
-  img.src = URL.createObjectURL(f);
-});
-
-// Añadir texto (se centra por defecto)
-document.getElementById('addTextBtn').addEventListener('click', ()=>{
-  const v = document.getElementById('textInput').value.trim();
-  if (!v) return;
-  const s = state[currentSide];
-  const t = {
-    text: v,
-    x: W/2, y: H/2, // centrado al crearlo
-    scale: 1, angle: 0,
-    color: document.getElementById('textColor').value || defaultTextStyle.color,
-    size:  parseInt(document.getElementById('textSize').value,10) || defaultTextStyle.size
-  };
-  s.texts.push(t);
-  active = { type:'text', idx: s.texts.length-1 };
-  updateActiveUI();
-  render();
-});
-
-// Sliders: rotación + escala aplican al activo
-document.getElementById('rotateRange').addEventListener('input', (e)=>{
-  if (!active.type) return;
-  const s = state[currentSide];
-  if (active.type === 'photo') s.photo.angle = parseFloat(e.target.value);
-  else s.texts[active.idx].angle = parseFloat(e.target.value);
-  render();
-});
-
-document.getElementById('scaleRange').addEventListener('input', (e)=>{
-  if (!active.type) return;
-  const s = state[currentSide];
-  if (active.type === 'photo') s.photo.scale = parseFloat(e.target.value);
-  else s.texts[active.idx].scale = parseFloat(e.target.value);
-  render();
-});
-
-// Botones rotar ±5°
-document.getElementById('rotateLeftBtn').addEventListener('click', ()=>{
-  const range = document.getElementById('rotateRange');
-  range.value = parseFloat(range.value) - 5;
-  range.dispatchEvent(new Event('input'));
-});
-document.getElementById('rotateRightBtn').addEventListener('click', ()=>{
-  const range = document.getElementById('rotateRange');
-  range.value = parseFloat(range.value) + 5;
-  range.dispatchEvent(new Event('input'));
-});
-
-// Color y tamaño texto (si el activo es texto)
-document.getElementById('textColor').addEventListener('input', (e)=>{
-  if (active.type !== 'text') return;
-  state[currentSide].texts[active.idx].color = e.target.value;
-  render();
-});
-document.getElementById('textSize').addEventListener('input', (e)=>{
-  if (active.type !== 'text') return;
-  state[currentSide].texts[active.idx].size = parseInt(e.target.value,10);
-  render();
-});
-
-// Eliminar elemento activo
-document.getElementById('deleteActiveBtn').addEventListener('click', ()=>{
-  const s = state[currentSide];
-  if (active.type === 'photo') {
-    s.photo.img = null;
-  } else if (active.type === 'text' && s.texts[active.idx]) {
-    s.texts.splice(active.idx, 1);
-  }
-  active = { type:null, idx:-1 };
-  updateActiveUI();
-  render();
-});
-
-// Reset solo del lado activo
-document.getElementById('resetSideBtn').addEventListener('click', ()=>{
-  if (!confirm('¿Resetear el lado actual?')) return;
-  const path = state[currentSide].templatePath;
-  state[currentSide] = makeSideState(path);
-  loadTemplateFor(currentSide, path);
-  active = { type:null, idx:-1 };
-  updateActiveUI();
-  render();
-});
-
-// Enviar PNG del lado activo por correo
-document.getElementById('sendBtn').addEventListener('click', async ()=>{
-  const imageBase64 = canvas.toDataURL('image/png');
-
-  try {
-    const res = await fetch("/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imageBase64, side: currentSide })
-    });
-
-    const data = await res.json();
-    if (data.success) {
-      alert("✅ Imagen enviada con éxito al correo");
-    } else {
-      alert("❌ Error al enviar el correo");
-    }
-  } catch (err) {
-    console.error(err);
-    alert("⚠️ No se pudo conectar con el servidor");
-  }
-});
-
-document.getElementById("btnWhatsApp").addEventListener("click", () => {
-  alert("👉 Botón WhatsApp presionado");
-
-  const canvas = document.getElementById("canvas"); // tu ID de canvas
-  if (!canvas) {
-    alert("⚠️ No se encontró el canvas con ID 'canvas'");
-    return;
-  }
-  alert("✅ Canvas encontrado");
-
-  const dataURL = canvas.toDataURL("image/png");
-  if (!dataURL) {
-    alert("⚠️ No se pudo generar la imagen del canvas");
-    return;
-  }
-  alert("✅ Imagen generada correctamente");
-
-  // 1. Descargar automáticamente la imagen
-  try {
-    const enlace = document.createElement("a");
-    enlace.href = dataURL;
-    enlace.download = "placa.png";
-    enlace.click();
-    alert("📂 Imagen descargada como placa.png");
-  } catch (err) {
-    alert("⚠️ Error al descargar la imagen: " + err.message);
-  }
-
-  // 2. Texto a enviar
-  const mensaje = encodeURIComponent(
-    "Hola 👋, aquí está la imagen que acabo de personalizar. Revisa la carpeta de descargas 📂 y adjúntala al chat."
-  );
-  const numero = "573213241471"; // cambia por tu número
-  alert("📩 Mensaje preparado: " + decodeURIComponent(mensaje));
-
-  // 3. Detectar si es móvil o PC
-  const esMovil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  alert("🖥️ Dispositivo detectado: " + (esMovil ? "Móvil" : "PC"));
-
-  let url = "";
-  if (esMovil) {
-    url = `whatsapp://send?phone=${numero}&text=${mensaje}`;
-  } else {
-    url = `https://web.whatsapp.com/send?phone=${numero}&text=${mensaje}`;
-  }
-  alert("🔗 URL generada: " + url);
-
-  // 4. Abrir WhatsApp
-  try {
-    window.open(url, "_blank");
-    alert("✅ Intentando abrir WhatsApp...");
-  } catch (err) {
-    alert("⚠️ Error al abrir WhatsApp: " + err.message);
-  }
-});
- 
- 
-/* =========================
-   Inicialización
-   ========================= */
-initTemplates();
-syncTemplateSelect();
-render();
-updateActiveUI();
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
