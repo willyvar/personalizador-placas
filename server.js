@@ -101,6 +101,15 @@ app.post("/send-whatsapp", async (req, res) => {
     const mediaIdFront = await uploadToWhatsApp(frontPath);
     const mediaIdBack = await uploadToWhatsApp(backPath);
 
+    // ✅ Borrar archivos locales después de subirlos
+    try {
+      fs.unlinkSync(frontPath);
+      fs.unlinkSync(backPath);
+      console.log("🗑️ Archivos temporales eliminados");
+    } catch (err) {
+      console.warn("⚠️ No se pudo borrar algún archivo:", err.message);
+    }
+
     // Enviar ambas imágenes
     for (const mediaId of [mediaIdFront, mediaIdBack]) {
       await axios.post(
@@ -128,7 +137,7 @@ app.post("/send-whatsapp", async (req, res) => {
         to: whatsapp,
         type: "text",
         text: {
-          body: "✅ Aquí tienes tu diseño de placa. Gracias por usar el personalizador.",
+          body: "✅ Aquí tienes el diseño que quiero para mi placa. Gracias por usar el personalizador.",
         },
       },
       {
@@ -141,12 +150,28 @@ app.post("/send-whatsapp", async (req, res) => {
 
     res.json({ success: true, message: "WhatsApp enviado correctamente" });
   } catch (err) {
-    console.error(
-      "❌ Error en /send-whatsapp:",
-      err.response?.data || err.message
-    );
-    res.status(500).json({ success: false, error: err.message });
+    console.error("❌ Error en /send-whatsapp:");
+
+    if (err.response) {
+      // La API de WhatsApp respondió con error
+      console.error("Status:", err.response.status);
+      console.error("Data:", JSON.stringify(err.response.data, null, 2));
+      console.error("Headers:", err.response.headers);
+    } else if (err.request) {
+      // La petición salió pero no hubo respuesta
+      console.error("No hubo respuesta de la API:", err.request);
+    } else {
+      // Error al preparar la petición
+      console.error("Error al configurar la petición:", err.message);
+    }
+
+    res.status(500).json({
+      success: false,
+      error: err.response?.data || err.message,
+    });
   }
+
+
 });
 
 // 🌐 Ruta Webhook (verificación inicial de Meta)

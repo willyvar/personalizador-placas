@@ -691,8 +691,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showMessage("⚠️ Problema al enviar correo.", "error");
       }
     } catch (err) {
-      console.error(err);
-      showMessage("❌ Error en /send-email.", "error");
+      console.error("Error en /send-email.",err);
     }
   });
 
@@ -715,10 +714,11 @@ document.addEventListener("DOMContentLoaded", () => {
         showMessage("✅ Placa enviada por WhatsApp.", "success");
       else showMessage("⚠️ Problema al enviar WhatsApp.", "error");
     } catch (err) {
-      console.error(err);
-      showMessage("❌ Error en /send-whatsapp.", "error");
+      console.error("Error en /send-whatsapp:", err);
     }
-  }); /* =====================================================
+  });
+  
+  /* =====================================================
      Helpers: sincronizar sliders con el elemento activo
   ===================================================== */
 
