@@ -4,6 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Personalizador de Placas</title>
+
   <style>
     body{font-family: Inter, Arial, sans-serif; background:#f6f7fb; color:#222; margin:20px; display:flex; gap:20px; align-items:flex-start; justify-content:center}
     .panel{background:#fff; padding:14px; border-radius:10px; box-shadow:0 6px 18px rgba(20,20,40,.06)}
@@ -17,6 +18,83 @@
     .pill{padding:4px 8px; border-radius:999px; background:#eef; font-size:12px}
     .hint{font-size:12px; color:#666}
     #statusMsg{margin-top:10px; font-weight:bold}
+
+    /* Estilos responsivos */
+@media (max-width: 900px) {
+  body {
+    flex-direction: column; /* apila los paneles en pantallas pequeñas */
+    align-items: center;
+    margin: 10px;
+  }
+
+  .controls {
+    width: 100%;  /* controles ocupan todo el ancho */
+    max-width: 420px; /* límite para no crecer demasiado */
+  }
+
+  .panel {
+    width: 100%;
+    max-width: 480px; /* ambos paneles se adaptan */
+  }
+
+  .row {
+    flex-wrap: wrap; /* permite que los inputs y labels no se salgan */
+  }
+
+  label {
+    min-width: 100px;
+    flex: 1;
+  }
+
+  input, select, button {
+    flex: 2;
+  }
+}
+
+@media (max-width: 500px) {
+  .row {
+    flex-direction: column; /* cada input y label se apila */
+    align-items: flex-start;
+  }
+
+  label {
+    min-width: auto;
+    width: 100%;
+    margin-bottom: 4px;
+  }
+
+  input, select, button {
+    width: 100%;
+  }
+
+  h3 {
+    font-size: 16px;
+  }
+
+  canvas {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+  /* Centrar títulos, canvas y selects */
+  .panel h3,
+  .panel canvas,
+  #templateSelect {
+    display: block;
+    margin: 10px auto;
+    text-align: center;
+}
+
+canvas {
+  border-radius: 10px;
+  background: #fff;
+  display: block;
+  margin: 8px auto;   /* centra el canvas */
+  max-width: 100%;
+  height: auto;
+}
+
   </style>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,9 +118,9 @@
     </div>
 
     <h3 style="text-align:center">Frente</h3>
-    <canvas id="canvasFront" width="400" height="400"></canvas>
+    <canvas id="canvasFront" width="250" height="250"></canvas>
     <h3 style="text-align:center">Respaldo</h3>
-    <canvas id="canvasBack" width="400" height="400"></canvas>
+    <canvas id="canvasBack" width="250" height="250"></canvas>
 
     <p class="hint">Arrastra con el mouse para mover elementos. Usa sliders para rotar/escala.</p>
     <div id="statusMsg"></div>

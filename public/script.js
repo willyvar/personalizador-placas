@@ -1,3 +1,48 @@
+document.addEventListener("DOMContentLoaded", () => {
+  /* =====================================================
+     Variables & DOM
+  ===================================================== */
+  let activeSide = "front";
+  let activeElement = null;
+  const templates = { front: null, back: null };
+
+  // Valores por defecto para contacto
+  const defaultEmail = "sublidesingwvr@gmail.com";
+  const defaultWhatsapp = "573213241471";
+
+  const emailInput = document.getElementById("emailInput");
+  const whatsappInput = document.getElementById("whatsappInput");
+
+  // ✅ Solo se asignan si los inputs están vacíos
+  if (emailInput && !emailInput.value) emailInput.value = defaultEmail;
+  if (whatsappInput && !whatsappInput.value)
+    whatsappInput.value = defaultWhatsapp;
+
+  const state = {
+    front: {
+      bgColor: "#ffffff",
+      bgImage: null,
+      bgFullImage: null,
+      photo: null,
+      texts: [],
+    },
+    back: {
+      bgColor: "#ffffff",
+      bgImage: null,
+      bgFullImage: null,
+      photo: null,
+      texts: [],
+    },
+  };
+
+  const canvasFront = document.getElementById("canvasFront");
+  const ctxFront = canvasFront.getContext("2d");
+  const canvasBack = document.getElementById("canvasBack");
+  const ctxBack = canvasBack.getContext("2d");
+
+  // ... 🔽 aquí sigue todo tu código tal cual
+});
+
 // script.js (REVISADO) - separación capas: fondo (full o editable) + mascota encima + textos
 document.addEventListener("DOMContentLoaded", () => {
   /* =====================================================
@@ -691,7 +736,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showMessage("⚠️ Problema al enviar correo.", "error");
       }
     } catch (err) {
-      console.error("Error en /send-email.",err);
+      console.error("Error en /send-email.", err);
     }
   });
 
@@ -717,7 +762,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Error en /send-whatsapp:", err);
     }
   });
-  
+
   /* =====================================================
      Helpers: sincronizar sliders con el elemento activo
   ===================================================== */
